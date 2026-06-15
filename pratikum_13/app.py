@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import joblib
 import numpy as np
@@ -95,10 +96,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Load artifacts ───────────────────────────────────────────────────────────
+# Pakai path absolut berdasarkan lokasi app.py supaya tidak gagal di Streamlit Cloud
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @st.cache_resource
 def load_artifacts():
-    model = joblib.load('model.pkl')
-    district_mean_price = joblib.load('district_mean_price.pkl')
+    model = joblib.load(os.path.join(BASE_DIR, 'model.pkl'))
+    district_mean_price = joblib.load(os.path.join(BASE_DIR, 'district_mean_price.pkl'))
     return model, district_mean_price
 
 model, district_mean_price = load_artifacts()
@@ -384,10 +388,10 @@ st.markdown('<p class="section-title">📈 Simulasi Sensitivitas Harga vs Luas T
 land_range = np.arange(30, 1001, 10)
 prices_sim = []
 for ls in land_range:
-    inp = np.array([[facilities, bedrooms, bathrooms, ls, building_size,
+    inp_sim = np.array([[facilities, bedrooms, bathrooms, ls, building_size,
                      carports, electricity, maid_bedrooms, maid_bathrooms,
                      floors, property_condition, garages, furnishing, district_encoded]])
-    prices_sim.append(model.predict(inp)[0] / 1e9)
+    prices_sim.append(model.predict(inp_sim)[0] / 1e9)
 
 fig_sim = go.Figure()
 fig_sim.add_trace(go.Scatter(
